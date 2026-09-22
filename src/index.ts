@@ -1,6 +1,9 @@
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+import { WebhookController } from './modules/webhook/webhook.controller';
+import { BotController } from './modules/bot/bot.controller';
+import './services/queue.service'; // Initialize queue worker
 
 dotenv.config();
 
@@ -10,9 +13,9 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// Healthcheck
 app.get('/health', async (req: Request, res: Response) => {
   try {
-    // Check DB connection
     await prisma.$queryRaw`SELECT 1`;
     res.status(200).json({ status: 'ok', db: 'connected' });
   } catch (error) {
@@ -20,17 +23,15 @@ app.get('/health', async (req: Request, res: Response) => {
   }
 });
 
-// Basic structure for webhook routing
-app.post('/webhook/:channelType/:botId', (req: Request, res: Response) => {
-  const { channelType, botId } = req.params;
-  const payload = req.body;
+// Bot CRUD Routes
+app.post('/api/bots', BotController.createBot);
+app.get('/api/bots/:botId', BotController.getBot);
+app.post('/api/bots/:botId/channels', BotController.addChannel);
 
-  console.log(`[Webhook Received] Channel: ${channelType}, Bot: ${botId}`);
-  // Normalization logic and message queueing goes here
-  
-  res.status(200).send('OK');
-});
+// Webhook Route
+app.post('/webhook/:channelType/:botId', WebhookController.handleIncomingWebhook);
 
 app.listen(port, () => {
   console.log(`🚀 Chatbot Generator Backend running on port ${port}`);
 });
+
