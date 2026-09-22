@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { PrismaClient, ChannelType } from '@prisma/client';
 
 const prisma = new PrismaClient();

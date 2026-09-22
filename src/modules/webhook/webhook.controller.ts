@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { ChannelType, PrismaClient } from '@prisma/client';
 import { TelegramAdapter } from '../channels/telegram.adapter';
 import { ViberAdapter } from '../channels/viber.adapter';

@@ -1,9 +1,14 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import type { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { WebhookController } from './modules/webhook/webhook.controller';
 import { BotController } from './modules/bot/bot.controller';
-import './services/queue.service'; // Initialize queue worker
+
+// Only initialize queue worker if REDIS_HOST is set (prevents crash on Vercel without env vars)
+if (process.env.REDIS_HOST) {
+  require('./services/queue.service');
+}
 
 dotenv.config();
 
@@ -12,6 +17,11 @@ const prisma = new PrismaClient();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
+
+// Root route
+app.get('/', (req: Request, res: Response) => {
+  res.status(200).send('Chatbot Generator Backend is running!');
+});
 
 // Healthcheck
 app.get('/health', async (req: Request, res: Response) => {
