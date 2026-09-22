@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  bots      Bot[]
+}
+
+model Bot {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  ownerId     String
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  channels    Channel[]
+  messages    Message[]
+  analytics   Analytics?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum ChannelType {
+  TELEGRAM
+  VIBER
+  WHATSAPP
+  INSTAGRAM
+  FACEBOOK
+}
+
+model Channel {
+  id          String      @id @default(uuid())
+  type        ChannelType
+  botId       String
+  bot         Bot         @relation(fields: [botId], references: [id], onDelete: Cascade)
+  token       String      // API credentials, encrypted in production
+  webhookUrl  String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([type, botId])
+}
+
+model Message {
+  id          String      @id @default(uuid())
+  botId       String
+  bot         Bot         @relation(fields: [botId], references: [id], onDelete: Cascade)
+  channelType ChannelType
+  senderId    String      // ID of the user on the specific platform
+  content     String
+  isOutgoing  Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+}
+
+model Analytics {
+  id           String   @id @default(uuid())
+  botId        String   @unique
+  bot          Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
+  totalUsers   Int      @default(0)
+  totalMessages Int     @default(0)
+  updatedAt    DateTime @updatedAt
+}
