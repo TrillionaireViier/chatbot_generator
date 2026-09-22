@@ -31,7 +31,10 @@ app.post('/api/bots/:botId/channels', BotController.addChannel);
 // Webhook Route
 app.post('/webhook/:channelType/:botId', WebhookController.handleIncomingWebhook);
 
-app.listen(port, () => {
-  console.log(`🚀 Chatbot Generator Backend running on port ${port}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
+    console.log(`🚀 Chatbot Generator Backend running on port ${port}`);
+  });
+}
 
+export default app;
